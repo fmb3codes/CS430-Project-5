@@ -1,3 +1,10 @@
+//
+//  ezview.c
+//  CS430 Project 5
+//
+//  Frankie Berry
+//
+
 #define GLFW_DLL 1
 
 #define GL_GLEXT_PROTOTYPES
@@ -10,7 +17,7 @@
 
 GLFWwindow* window;
 
-
+// remove color, add textcoord?
 typedef struct {
   float position[3];
   float color[4];
@@ -160,6 +167,8 @@ int main(void) {
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
 
+  // Add texture stuff here?
+  
   // Repeat
   while (!glfwWindowShouldClose(window)) {
 
