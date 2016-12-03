@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <assert.h>
 
 // function prototypes
 void read_header_data(char* input_file_name); // function meant to read and parse through the header information of a .ppm file
@@ -53,6 +54,10 @@ image_data *image_buffer;
 
 // global variable meant to track a file pointer, specifically in order to track where the header information in a .ppm file ends for convenience
 int current_location;
+
+// global variables intended to hold height/width variables after reading the information in from the header of the .ppm file
+int image_height;
+int image_width;
 
 GLFWwindow* window;
 
@@ -130,7 +135,16 @@ int simple_program() {
   GLint program_id = glCreateProgram();
   GLint vertex_shader = simple_shader(GL_VERTEX_SHADER, vertex_shader_src);
   GLint fragment_shader = simple_shader(GL_FRAGMENT_SHADER, fragment_shader_src);
-
+  
+  // potentially add other stuff around here
+  GLint texcoord_location = glGetAttribLocation(program_id, "TexCoordIn");
+  //assert(texcoord_location != -1); temp removal of this assertion
+  GLint tex_location = glGetUniformLocation(program_id, "Texture"); // maybe swap with below call glEnable...
+  //assert(tex_location != -1); temp removal of this assertion
+	
+  glEnableVertexAttribArray(texcoord_location);
+  ///
+  
   glAttachShader(program_id, vertex_shader);
   glAttachShader(program_id, fragment_shader);
 
@@ -200,8 +214,8 @@ int main(int argc, char** argv) {
 	// function calls which start the bulk of the program, including reading header data, reading image data, and then writing out both that header and image data into a file
 	read_header_data(input_name); // reads and parses header information
 
-	// intermediate image_buffer memory allocation here as file_width and file_height were previously unavailable
-	image_buffer = (image_data *)malloc(sizeof(image_data) * atoi(header_buffer->file_width) * atoi(header_buffer->file_height)  + 1); // + 1
+	// intermediate image_buffer memory allocation here as image_width and image_height were previously unavailable
+	image_buffer = (image_data *)malloc(sizeof(image_data) * image_width * image_height  + 1); // + 1
 	
 	read_image_data(input_name); // reads and stores image information
 	printf("Done reading .ppm file.\n");
@@ -232,10 +246,10 @@ int main(int argc, char** argv) {
 
 	// Create and open a window
 	window = glfwCreateWindow(640,//atoi(header_buffer->file_width),
-							480,//atoi(header_buffer->file_height),
-							input_name, // change this?
-							NULL,
-							NULL);
+							  480,//atoi(header_buffer->file_height),
+							  input_name, // change this?
+							  NULL,
+							  NULL);
 
 	if (!window) {
 		glfwTerminate();
@@ -244,9 +258,25 @@ int main(int argc, char** argv) {
 	}
 
 	glfwMakeContextCurrent(window);
-
+	
+	// potentially move this after executing simple_program()
+	// sets up texture ID
+	GLuint texID;
+    glGenTextures(1, &texID);
+    glBindTexture(GL_TEXTURE_2D, texID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image_width, image_height, 0, GL_RGBA, 
+		 GL_UNSIGNED_BYTE, image_buffer);
+	////
+	
+	
 	program_id = simple_program();
 
+	//
+	// potentially bind textures here
+	//
+	
 	glUseProgram(program_id);
 
 	position_slot = glGetAttribLocation(program_id, "Position");
@@ -272,31 +302,31 @@ int main(int argc, char** argv) {
 	// Repeat
 	while (!glfwWindowShouldClose(window)) {
 
-	glClearColor(0, 104.0/255.0, 55.0/255.0, 1.0); // may change this later
-	glClear(GL_COLOR_BUFFER_BIT);
+		glClearColor(0, 104.0/255.0, 55.0/255.0, 1.0); // may change this later
+		glClear(GL_COLOR_BUFFER_BIT);
 
-	glViewport(0, 0, 640, 480);
+		glViewport(0, 0, 640, 480);
 
-	glVertexAttribPointer(position_slot,
-						  3,
-						  GL_FLOAT,
-						  GL_FALSE,
-						  sizeof(Vertex),
-						  0);
+		glVertexAttribPointer(position_slot,
+							  3,
+							  GL_FLOAT,
+							  GL_FALSE,
+							  sizeof(Vertex),
+							  0);
 
-	glVertexAttribPointer(color_slot,
-						  4,
-						  GL_FLOAT,
-						  GL_FALSE,
-						  sizeof(Vertex),
-						  (GLvoid*) (sizeof(float) * 3));
+		glVertexAttribPointer(color_slot,
+							  4,
+							  GL_FLOAT,
+							  GL_FALSE,
+							  sizeof(Vertex),
+							  (GLvoid*) (sizeof(float) * 3));
 
-	glDrawElements(GL_TRIANGLES,
-				   sizeof(Indices) / sizeof(GLubyte),
-				   GL_UNSIGNED_BYTE, 0);
+		glDrawElements(GL_TRIANGLES,
+					   sizeof(Indices) / sizeof(GLubyte),
+					   GL_UNSIGNED_BYTE, 0);
 
-	glfwSwapBuffers(window);
-	glfwPollEvents();
+		glfwSwapBuffers(window);
+		glfwPollEvents();
 	}
 
 	glfwDestroyWindow(window);
@@ -324,24 +354,10 @@ void read_header_data(char* input_file_name)
 	int c;// = fgetc(fp); // initializes int c to the first character in the input file
 	int i = 0; // initializes iterator variable
 
-	// determining file format
-	// while loop which is intended to read in the file format until whitespace is found
-	/*while(1)
-	{
-		if(c == '#' || c == ' ' || c == '\t' || c == '\r' || c == '\n') // white space conditional
-		{
-			if(c == '#')
-			{
-				fgets(current_line, 1024, fp); // immediately reads to end of line if a comment is found
-			}
-			break; // breaks out of whitespace once file format is read
-		}
-		temp[i++] = c; // stores non-white space character into temp chaacter array
-        c = fgetc(fp);	// stores next character in file in c		
-	}*/
+	
 	skip_ws(fp);
-	temp[i++] = fgetc(fp);
-	temp[i++] = fgetc(fp);
+	temp[i++] = fgetc(fp); // Should read in P 
+	temp[i++] = fgetc(fp); // Should read in # in P#
 	
 	
 	temp[i] = 0; // adds null-terminator at the end of the temporary character array
@@ -377,7 +393,7 @@ void read_header_data(char* input_file_name)
 	
 	temp[i] = 0; // adds null-terminator at the end of the temporary character array
 	strcpy(header_buffer->file_width, temp); // stores file width as a string in the global header_buffer
-	int width = atoi(temp); // converts read-in width to int for error checking
+	image_width = atoi(temp); // converts read-in width to int for error checking and stores in global variable
 	memset(temp, 0, 64); // resets all values in temp to 0 for later use
 	
 	
@@ -402,11 +418,11 @@ void read_header_data(char* input_file_name)
 	
 	temp[i] = 0; // adds null-terminator at the end of the temporary character array
 	strcpy(header_buffer->file_height, temp); // stores file height as a string in the global header_buffer
-	int height = atoi(temp); // converts read-in height to int for error checking
+	image_height = atoi(temp); // converts read-in height to int for error checking and stores in global variable
 	memset(temp, 0, 64); // resets all values in temp to 0 for later use
 	 
 	// error check to make sure height and width are both greater than 0
-	if(height < 0 || width < 0)
+	if(image_height < 0 || image_width < 0)
 	{
 		fprintf(stderr, "Error: Invalid height or width.\n");
 		exit(1); // exits out of program due to error
