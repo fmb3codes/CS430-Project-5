@@ -27,8 +27,9 @@ void skip_ws(FILE* json);  // helper function to skip whitespace when reading .p
 
 // remove color, add textcoord?
 typedef struct {
-  float position[3];
-  float color[4];
+  float Position[3];
+  float Color[4];
+  float TexCoord[2];
 } Vertex;
 
 // header_data buffer which is intended to contain all relevant header information from .ppm file
@@ -57,10 +58,10 @@ GLFWwindow* window;
 
 
 const Vertex Vertices[] = {
-  {{1, -1, 0}, {1, 0, 0, 1}},
-  {{1, 1, 0}, {0, 1, 0, 1}},
-  {{-1, 1, 0}, {0, 0, 1, 1}},
-  {{-1, -1, 0}, {0, 0, 0, 1}}
+  {{1, -1, 0}, {1, 0, 0, 1}, {0.99999, 0.99999}},
+  {{1, 1, 0}, {0, 1, 0, 1}, {0.99999, 0}},
+  {{-1, 1, 0}, {0, 0, 1, 1}, {0, 0}},
+  {{-1, -1, 0}, {0, 0, 0, 1}, {0, 0.99999}}
 };
 
 
@@ -68,15 +69,19 @@ const GLubyte Indices[] = {
   0, 1, 2,
   2, 3, 0
 };
-
+	
 
 char* vertex_shader_src =
   "attribute vec4 Position;\n"
   "attribute vec4 SourceColor;\n"
   "\n"
-  "varying vec4 DestinationColor;\n"
+  "attribute vec2 TexCoordIn;\n"
+  "varying lowp vec2 TexCoordOut;\n"
+  "\n"
+  "varying lowp vec4 DestinationColor;\n"
   "\n"
   "void main(void) {\n"
+  "    TexCoordOut = TexCoordIn;\n"
   "    DestinationColor = SourceColor;\n"
   "    gl_Position = Position;\n"
   "}\n";
@@ -85,9 +90,13 @@ char* vertex_shader_src =
 char* fragment_shader_src =
   "varying lowp vec4 DestinationColor;\n"
   "\n"
+  "varying lowp vec2 TexCoordOut;\n"
+  "uniform sampler2D Texture;\n"
+  "\n"
   "void main(void) {\n"
-  "    gl_FragColor = DestinationColor;\n"
+  "    gl_FragColor = texture2D(Texture, TexCoordOut);\n"
   "}\n";
+
 
 
 GLint simple_shader(GLint shader_type, char* shader_src) {
@@ -106,6 +115,7 @@ GLint simple_shader(GLint shader_type, char* shader_src) {
     GLchar message[256];
     glGetShaderInfoLog(shader_id, sizeof(message), 0, &message[0]);
     printf("glCompileShader Error: %s\n", message);
+	//printf("shader_type is: %d and shade_src is: %s\n", shader_type, shader_src); // testing code
     exit(1);
   }
 
@@ -176,11 +186,9 @@ int main(int argc, char** argv) {
 	{
 		fprintf(stderr, "Error: File didn't open properly; filename may be incorrect or file may not exist.\n");
 		return -1;
-	}	
-	
+	}		
 	fclose(fp);
 	// end of input file error checking
-	
 	
 	// block of code allocating memory to global header_buffer before its use
 	header_buffer = (struct header_data*)malloc(sizeof(struct header_data)); 
@@ -205,7 +213,7 @@ int main(int argc, char** argv) {
 	
 	
 	
-
+	// start of OpenGL calls
 	GLint program_id, position_slot, color_slot;
 	GLuint vertex_buffer;
 	GLuint index_buffer;
@@ -214,7 +222,7 @@ int main(int argc, char** argv) {
 
 	// Initialize GLFW library
 	if (!glfwInit())
-	return -1;
+		return -1;
 
 	glfwDefaultWindowHints();
 	glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API);
@@ -223,16 +231,16 @@ int main(int argc, char** argv) {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
 	// Create and open a window
-	window = glfwCreateWindow(640,
-							480,
-							"Hello World",
+	window = glfwCreateWindow(640,//atoi(header_buffer->file_width),
+							480,//atoi(header_buffer->file_height),
+							input_name, // change this?
 							NULL,
 							NULL);
 
 	if (!window) {
-	glfwTerminate();
-	printf("glfwCreateWindow Error\n");
-	exit(1);
+		glfwTerminate();
+		printf("glfwCreateWindow Error\n");
+		exit(1);
 	}
 
 	glfwMakeContextCurrent(window);
@@ -264,7 +272,7 @@ int main(int argc, char** argv) {
 	// Repeat
 	while (!glfwWindowShouldClose(window)) {
 
-	glClearColor(0, 104.0/255.0, 55.0/255.0, 1.0);
+	glClearColor(0, 104.0/255.0, 55.0/255.0, 1.0); // may change this later
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glViewport(0, 0, 640, 480);
