@@ -25,6 +25,8 @@ void read_image_data(char* input_file_name); // function meant to read and parse
 
 void skip_ws(FILE* json);  // helper function to skip whitespace when reading .ppm file
 
+void print_pixels(); // to be removed later (helper function)
+
 
 // remove color, add textcoord?
 typedef struct {
@@ -62,13 +64,13 @@ int image_width;
 GLFWwindow* window;
 
 
-const Vertex Vertices[] = {
-  {{1, -1, 0}, {1, 0, 0, 1}, {0.99999, 0.99999}},
-  {{1, 1, 0}, {0, 1, 0, 1}, {0.99999, 0}},
-  {{-1, 1, 0}, {0, 0, 1, 1}, {0, 0}},
-  {{-1, -1, 0}, {0, 0, 0, 1}, {0, 0.99999}}
+const Vertex Vertices[] =
+{
+  {{0.5, -0.5, 0}, {1, 0, 0, 1}, {.9999,0}},
+  {{0.5, 0.5, 0}, {0, 1, 0, 1}, {.9999,.9999}},
+  {{-0.5, 0.5, 0}, {0, 0, 1, 1}, {0,.9999}},
+  {{-0.5, -0.5, 0}, {0, 0, 0, 1}, {0,0}}
 };
-
 
 const GLubyte Indices[] = {
   0, 1, 2,
@@ -135,15 +137,6 @@ int simple_program() {
   GLint program_id = glCreateProgram();
   GLint vertex_shader = simple_shader(GL_VERTEX_SHADER, vertex_shader_src);
   GLint fragment_shader = simple_shader(GL_FRAGMENT_SHADER, fragment_shader_src);
-  
-  // potentially add other stuff around here
-  GLint texcoord_location = glGetAttribLocation(program_id, "TexCoordIn");
-  //assert(texcoord_location != -1); temp removal of this assertion
-  GLint tex_location = glGetUniformLocation(program_id, "Texture"); // maybe swap with below call glEnable...
-  //assert(tex_location != -1); temp removal of this assertion
-	
-  glEnableVertexAttribArray(texcoord_location);
-  ///
   
   glAttachShader(program_id, vertex_shader);
   glAttachShader(program_id, fragment_shader);
@@ -220,7 +213,7 @@ int main(int argc, char** argv) {
 	read_image_data(input_name); // reads and stores image information
 	printf("Done reading .ppm file.\n");
 	
-	
+	//print_pixels(); testing code
 	
 	
 	
@@ -266,8 +259,8 @@ int main(int argc, char** argv) {
     glBindTexture(GL_TEXTURE_2D, texID);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image_width, image_height, 0, GL_RGBA, 
-		 GL_UNSIGNED_BYTE, image_buffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image_width, image_height, 0, GL_RGB, 
+				 GL_UNSIGNED_BYTE, image_buffer);
 	////
 	
 	
@@ -283,6 +276,15 @@ int main(int argc, char** argv) {
 	color_slot = glGetAttribLocation(program_id, "SourceColor");
 	glEnableVertexAttribArray(position_slot);
 	glEnableVertexAttribArray(color_slot);
+	
+	// potentially add other stuff around here
+	GLint texcoord_location = glGetAttribLocation(program_id, "TexCoordIn");
+	//assert(texcoord_location != -1); temp removal of this assertion
+	GLint tex_location = glGetUniformLocation(program_id, "Texture"); // maybe swap with below call glEnable...
+	//assert(tex_location != -1); temp removal of this assertion
+	glEnableVertexAttribArray(texcoord_location);
+	///
+	
 
 	// Create Buffer
 	glGenBuffers(1, &vertex_buffer);
@@ -320,7 +322,18 @@ int main(int argc, char** argv) {
 							  GL_FALSE,
 							  sizeof(Vertex),
 							  (GLvoid*) (sizeof(float) * 3));
-
+		// added texture stuff here					  
+		glVertexAttribPointer(texcoord_location,
+							  2,
+							  GL_FLOAT,
+							  GL_FALSE,
+							  sizeof(Vertex),
+							  (void*) (sizeof(float) * 7)); // modify last parameter? * 7 due to offset
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texID);
+		glUniform1i(tex_location, 0);
+		////
+		
 		glDrawElements(GL_TRIANGLES,
 					   sizeof(Indices) / sizeof(GLubyte),
 					   GL_UNSIGNED_BYTE, 0);
@@ -454,12 +467,13 @@ void read_header_data(char* input_file_name)
 	
 	// error check to make sure max color fits within the correct color channel for this project
 	if(maxcolor != 255)
-		{
-			fprintf(stderr, "Error: Image not an 8-bit channel (max color value is not 255)\n");
-		    exit(1); // exits out of program due to error	
-		}
+	{
+		fprintf(stderr, "Error: Image not an 8-bit channel (max color value is not 255)\n");
+		exit(1); // exits out of program due to error	
+	}
 	
-	current_location = ftell(fp); // stores location of file pointer after header is read in for later use when reading image data
+	skip_ws(fp);
+	current_location = ftell(fp); // stores location of file pointer after header is read in for later use when reading image data	
 	 
 	fclose(fp);
 }
@@ -479,7 +493,7 @@ void read_image_data(char* input_file_name)
 	}
 		
 	// fseek points file pointer to space right after header information in the input file, so that the image_data buffer only reads in image data
-	fseek(fp, current_location, SEEK_SET);
+	fseek(fp, current_location - 3, SEEK_SET); // POTENTIALLY CHANGE THIS
 	
 	// strcmp to check for type of input file format
 	if(strcmp(header_buffer->file_format, "P3") == 0)
@@ -493,13 +507,11 @@ void read_image_data(char* input_file_name)
 		current_pixel.g = '0'; // initializes current pixel RGB values to 0
 		current_pixel.b = '0';
 		
-		skip_ws(fp);
-		
 		while(1)
 		{
 			if(feof(fp))
 				break;
-			//skip_ws(fp);
+			skip_ws(fp);
 			fgets(temp, 5, fp);
 			current_number = atoi(temp);
 			if(current_number < 0 || current_number > 255)
@@ -509,7 +521,7 @@ void read_image_data(char* input_file_name)
 			}
 			current_pixel.r = current_number; // stores red value
 			
-			skip_ws(fp);
+			//skip_ws(fp);
 			fgets(temp, 5, fp);
 			current_number = atoi(temp);
 			if(current_number < 0 || current_number > 255)
@@ -617,4 +629,18 @@ void skip_ws(FILE* input_file)
     c = fgetc(input_file);
   }
   ungetc(c, input_file);
+}
+
+// helper function 
+void print_pixels()
+{
+	int i = 0;
+	printf("\nHeader info:\nformat:%s\nheight:%s\nwidth:%s\nmaxcolor:%s\n\n", header_buffer->file_format, header_buffer->file_height, header_buffer->file_width, header_buffer->file_maxcolor);
+	while(i != (atoi(header_buffer->file_width) * atoi(header_buffer->file_height)))
+	{
+		printf("Pixel #%d\n", i);
+		printf("R: %d G: %d B: %d\n", image_buffer->r, image_buffer->g, image_buffer->b);
+		image_buffer++;
+		i++;
+	}
 }
