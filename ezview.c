@@ -155,11 +155,43 @@ int simple_program() {
   return program_id;
 }
 
+void translate(int dir)
+{
+    switch(dir)
+    {
+        case 0:
+            printf("Up arrow key recognized.\n");
+            break;
+        case 1:
+            printf("Down arrow key recognized.\n");
+            break;
+        case 2:
+            printf("Left arrow key recognized.\n");
+            break;
+        case 3:
+            printf("Right arrow key recognized.\n");
+            break;
+        default:
+            printf("Invalid key recognized for translation.\n");
+            break;
+    }
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (key == GLFW_KEY_UP && action == GLFW_PRESS)
+        translate(0);
+    else if (key == GLFW_KEY_DOWN && action == GLFW_PRESS)
+        translate(1);
+    else if (key == GLFW_KEY_LEFT && action == GLFW_PRESS)
+        translate(2);
+    else if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS)
+        translate(3);
+}
 
 static void error_callback(int error, const char* description) {
   fputs(description, stderr);
 }
-
 
 // 	CONFIRM IF P3 OR P6 AND CHANGE ERROR CODES IN READ_DATA FUNCTIONS TO INDICATE ONE OR THE OTHER
 
@@ -213,7 +245,8 @@ int main(int argc, char** argv) {
 	read_image_data(input_name); // reads and stores image information
 	printf("Done reading .ppm file.\n");
 	
-	//print_pixels(); testing code
+	//print_pixels(); // testing code
+	//exit(1);
 	
 	
 	
@@ -339,6 +372,7 @@ int main(int argc, char** argv) {
 					   GL_UNSIGNED_BYTE, 0);
 
 		glfwSwapBuffers(window);
+		glfwSetKeyCallback(window, key_callback);
 		glfwPollEvents();
 	}
 
@@ -638,6 +672,8 @@ void print_pixels()
 	printf("\nHeader info:\nformat:%s\nheight:%s\nwidth:%s\nmaxcolor:%s\n\n", header_buffer->file_format, header_buffer->file_height, header_buffer->file_width, header_buffer->file_maxcolor);
 	while(i != (atoi(header_buffer->file_width) * atoi(header_buffer->file_height)))
 	{
+		//if(i == 20)
+			//break;
 		printf("Pixel #%d\n", i);
 		printf("R: %d G: %d B: %d\n", image_buffer->r, image_buffer->g, image_buffer->b);
 		image_buffer++;
