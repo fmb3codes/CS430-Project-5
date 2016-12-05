@@ -155,6 +155,9 @@ int simple_program() {
   return program_id;
 }
 
+// ADD PROTOTYPES
+
+
 void translate(int dir)
 {
     switch(dir)
@@ -177,6 +180,22 @@ void translate(int dir)
     }
 }
 
+void rotate(int dir)
+{
+    switch(dir)
+    {
+        case 0:
+            printf("R key recognized.\n");
+            break;
+        case 1:
+            printf("T key recognized.\n");
+            break;
+        default:
+            printf("Invalid key recognized for rotation.\n");
+            break;
+    }
+}
+
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     if (key == GLFW_KEY_UP && action == GLFW_PRESS)
@@ -187,6 +206,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         translate(2);
     else if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS)
         translate(3);
+	else if (key == GLFW_KEY_R && action == GLFW_PRESS)
+        rotate(0);
+	else if (key == GLFW_KEY_T && action == GLFW_PRESS)
+        rotate(1);
 }
 
 static void error_callback(int error, const char* description) {
