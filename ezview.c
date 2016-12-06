@@ -196,6 +196,22 @@ void rotate(int dir)
     }
 }
 
+void scale(int dir)
+{
+    switch(dir)
+    {
+        case 0:
+            printf("S key recognized.\n");
+            break;
+        case 1:
+            printf("D key recognized.\n");
+            break;
+        default:
+            printf("Invalid key recognized for scale.\n");
+            break;
+    }
+}
+
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     if (key == GLFW_KEY_UP && action == GLFW_PRESS)
@@ -210,6 +226,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         rotate(0);
 	else if (key == GLFW_KEY_T && action == GLFW_PRESS)
         rotate(1);
+	else if (key == GLFW_KEY_S && action == GLFW_PRESS)
+        scale(0);
+	else if (key == GLFW_KEY_D && action == GLFW_PRESS)
+        scale(1);
 }
 
 static void error_callback(int error, const char* description) {
