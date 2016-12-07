@@ -212,6 +212,26 @@ void scale(int dir)
     }
 }
 
+void shear(int dir)
+{
+    switch(dir)
+    {
+        case 0:
+            printf("X key recognized.\n");
+            break;
+        case 1:
+            printf("C key recognized.\n");
+            break;
+        default:
+            printf("Invalid key recognized for shear.\n");
+            break;
+    }
+}
+
+// arrow keys for translation
+// r, t keys for rotation
+// s, d keys for scale
+// x, c keys for shear
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     if (key == GLFW_KEY_UP && action == GLFW_PRESS)
@@ -230,6 +250,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         scale(0);
 	else if (key == GLFW_KEY_D && action == GLFW_PRESS)
         scale(1);
+	else if (key == GLFW_KEY_X && action == GLFW_PRESS)
+        shear(0);
+	else if (key == GLFW_KEY_C && action == GLFW_PRESS)
+        shear(1);
 }
 
 static void error_callback(int error, const char* description) {
