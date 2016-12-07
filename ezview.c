@@ -64,15 +64,15 @@ int image_width;
 GLFWwindow* window;
 
 
-const Vertex Vertices[] =
+Vertex Vertices[] =
 {
-  {{0.5, -0.5, 0}, {1, 0, 0, 1}, {.9999,0}},
-  {{0.5, 0.5, 0}, {0, 1, 0, 1}, {.9999,.9999}},
-  {{-0.5, 0.5, 0}, {0, 0, 1, 1}, {0,.9999}},
-  {{-0.5, -0.5, 0}, {0, 0, 0, 1}, {0,0}}
+  {{1, -1, 0}, {1, 0, 0, 1}, {.9999,0}},
+  {{1, 1, 0}, {0, 1, 0, 1}, {.9999,.9999}},
+  {{-1, 1, 0}, {0, 0, 1, 1}, {0,.9999}},
+  {{-1, -1, 0}, {0, 0, 0, 1}, {0,0}}
 };
 
-const GLubyte Indices[] = {
+const GLubyte Indices[] = { // rm const?
   0, 1, 2,
   2, 3, 0
 };
@@ -164,15 +164,31 @@ void translate(int dir)
     {
         case 0:
             printf("Up arrow key recognized.\n");
+			Vertices[0].Position[1] += 0.05;
+            Vertices[1].Position[1] += 0.05;
+            Vertices[2].Position[1] += 0.05;
+            Vertices[3].Position[1] += 0.05;
             break;
         case 1:
             printf("Down arrow key recognized.\n");
+			Vertices[0].Position[1] += -0.05;
+            Vertices[1].Position[1] += -0.05;
+            Vertices[2].Position[1] += -0.05;
+            Vertices[3].Position[1] += -0.05;
             break;
         case 2:
             printf("Left arrow key recognized.\n");
+			Vertices[0].Position[0] += -0.05;
+            Vertices[1].Position[0] += -0.05;
+            Vertices[2].Position[0] += -0.05;
+            Vertices[3].Position[0] += -0.05;
             break;
         case 3:
             printf("Right arrow key recognized.\n");
+			Vertices[0].Position[0] += 0.05;
+            Vertices[1].Position[0] += 0.05;
+            Vertices[2].Position[0] += 0.05;
+            Vertices[3].Position[0] += 0.05;
             break;
         default:
             printf("Invalid key recognized for translation.\n");
@@ -202,9 +218,25 @@ void scale(int dir)
     {
         case 0:
             printf("S key recognized.\n");
+			Vertices[0].Position[0] *= 1.1;
+            Vertices[0].Position[1] *= 1.1;
+            Vertices[1].Position[0] *= 1.1;
+            Vertices[1].Position[1] *= 1.1; // manually scaling the x and y coordinates up by 1.1 its original size of the Position vectors for each vertex
+            Vertices[2].Position[0] *= 1.1; // we don't care about the z coordinate
+            Vertices[2].Position[1] *= 1.1;
+            Vertices[3].Position[0] *= 1.1;
+            Vertices[3].Position[1] *= 1.1;
             break;
         case 1:
             printf("D key recognized.\n");
+			Vertices[0].Position[0] *= .9;
+            Vertices[0].Position[1] *= .9;
+            Vertices[1].Position[0] *= .9;
+            Vertices[1].Position[1] *= .9; // manually scaling the x and y coordinates down by .9 its original sizse of the Position vectors for each vertex
+            Vertices[2].Position[0] *= .9; // we don't care about the z coordinate
+            Vertices[2].Position[1] *= .9;
+            Vertices[3].Position[0] *= .9;
+            Vertices[3].Position[1] *= .9;
             break;
         default:
             printf("Invalid key recognized for scale.\n");
@@ -218,9 +250,17 @@ void shear(int dir)
     {
         case 0:
             printf("X key recognized.\n");
+			Vertices[0].Position[0] += 0.1;
+            Vertices[3].Position[0] += 0.1;
+			Vertices[2].Position[0] += -0.1;
+            Vertices[1].Position[0] += -0.1;
             break;
         case 1:
             printf("C key recognized.\n");
+			Vertices[0].Position[0] += -0.1;
+            Vertices[3].Position[0] += -0.1;
+			Vertices[2].Position[0] += 0.1;
+            Vertices[1].Position[0] += 0.1;
             break;
         default:
             printf("Invalid key recognized for shear.\n");
@@ -373,15 +413,17 @@ int main(int argc, char** argv) {
 	glUseProgram(program_id);
 
 	position_slot = glGetAttribLocation(program_id, "Position");
+	assert(position_slot != -1);
 	color_slot = glGetAttribLocation(program_id, "SourceColor");
+    assert(color_slot != -1);
 	glEnableVertexAttribArray(position_slot);
 	glEnableVertexAttribArray(color_slot);
 	
 	// potentially add other stuff around here
 	GLint texcoord_location = glGetAttribLocation(program_id, "TexCoordIn");
-	//assert(texcoord_location != -1); temp removal of this assertion
+	assert(texcoord_location != -1); // temp removal of this assertion
 	GLint tex_location = glGetUniformLocation(program_id, "Texture"); // maybe swap with below call glEnable...
-	//assert(tex_location != -1); temp removal of this assertion
+	assert(tex_location != -1); // temp removal of this assertion
 	glEnableVertexAttribArray(texcoord_location);
 	///
 	
@@ -403,6 +445,7 @@ int main(int argc, char** argv) {
 
 	// Repeat
 	while (!glfwWindowShouldClose(window)) {
+		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW);
 
 		glClearColor(0, 104.0/255.0, 55.0/255.0, 1.0); // may change this later
 		glClear(GL_COLOR_BUFFER_BIT);
