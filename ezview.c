@@ -148,8 +148,6 @@ int simple_program() {
   return program_id;
 }
 
-// ADD PROTOTYPES
-
 // translate function which translates the image slightly to either the upwards, downwards, right, or left direction depending on the arrow key entered
 void translate(int dir)
 {
@@ -157,31 +155,31 @@ void translate(int dir)
     {
         case 0:
             printf("Up arrow key recognized.\n");
-			Vertices[0].Position[1] += .5;
-            Vertices[1].Position[1] += .5;
-            Vertices[2].Position[1] += .5;
-            Vertices[3].Position[1] += .5;
+			Vertices[0].Position[1] += .25;
+            Vertices[1].Position[1] += .25;
+            Vertices[2].Position[1] += .25;
+            Vertices[3].Position[1] += .25;
             break;
         case 1:
             printf("Down arrow key recognized.\n");
-			Vertices[0].Position[1] += -.5;
-            Vertices[1].Position[1] += -.5;
-            Vertices[2].Position[1] += -.5;
-            Vertices[3].Position[1] += -.5;
+			Vertices[0].Position[1] += -.25;
+            Vertices[1].Position[1] += -.25;
+            Vertices[2].Position[1] += -.25;
+            Vertices[3].Position[1] += -.25;
             break;
         case 2:
             printf("Left arrow key recognized.\n");
-			Vertices[0].Position[0] += -.5;
-            Vertices[1].Position[0] += -.5;
-            Vertices[2].Position[0] += -.5;
-            Vertices[3].Position[0] += -.5;
+			Vertices[0].Position[0] += -.25;
+            Vertices[1].Position[0] += -.25;
+            Vertices[2].Position[0] += -.25;
+            Vertices[3].Position[0] += -.25;
             break;
         case 3:
             printf("Right arrow key recognized.\n");
-			Vertices[0].Position[0] += .5;
-            Vertices[1].Position[0] += .5;
-            Vertices[2].Position[0] += .5;
-            Vertices[3].Position[0] += .5;
+			Vertices[0].Position[0] += .25;
+            Vertices[1].Position[0] += .25;
+            Vertices[2].Position[0] += .25;
+            Vertices[3].Position[0] += .25;
             break;
         default:
             printf("Invalid key recognized for translation.\n");
@@ -286,13 +284,13 @@ void scale(int dir)
     }
 }
 
-// shear function which slightly shears the image to the left or right depending on the key entered (X for left and C for right)
+// shear function which slightly shears the image to the left/right/up/down depending on the key entered (Z for left, X for right, C for up, V for down)
 void shear(int dir)
 {
     switch(dir)
     {
         case 0:
-            printf("X key recognized.\n");
+            printf("Z key recognized.\n");
 			// shearing bottom two vertices
 			Vertices[0].Position[0] += 0.25;
             Vertices[3].Position[0] += 0.25;
@@ -301,13 +299,31 @@ void shear(int dir)
             Vertices[1].Position[0] += -0.25;
             break;
         case 1:
-            printf("C key recognized.\n");
+            printf("X key recognized.\n");
 			// shearing bottom two vertices
 			Vertices[0].Position[0] += -0.25;
             Vertices[3].Position[0] += -0.25;
 			// shearing top two vertices
 			Vertices[2].Position[0] += 0.25;
             Vertices[1].Position[0] += 0.25;
+            break;
+		case 2:
+            printf("C key recognized.\n");
+			// shearing bottom two vertices
+			Vertices[0].Position[1] += 0.25;
+            Vertices[3].Position[1] += -0.25;
+			// shearing top two vertices
+			Vertices[2].Position[1] += -0.25;
+            Vertices[1].Position[1] += 0.25;
+            break;
+        case 3:
+            printf("V key recognized.\n");
+			// shearing bottom two vertices
+			Vertices[0].Position[1] += -0.25;
+            Vertices[3].Position[1] += 0.25;
+			// shearing top two vertices
+			Vertices[2].Position[1] += 0.25;
+            Vertices[1].Position[1] += -0.25;
             break;
         default:
             printf("Invalid key recognized for shear.\n");
@@ -318,7 +334,7 @@ void shear(int dir)
 // arrow keys for translation
 // r, t keys for rotation
 // s, d keys for scale
-// x, c keys for shear
+// z, x, c, v keys for shear
 // escape key to exit program
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -338,10 +354,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         scale(0);
 	else if (key == GLFW_KEY_D && action == GLFW_PRESS)
         scale(1);
-	else if (key == GLFW_KEY_X && action == GLFW_PRESS)
+	else if (key == GLFW_KEY_Z && action == GLFW_PRESS)
         shear(0);
-	else if (key == GLFW_KEY_C && action == GLFW_PRESS)
+	else if (key == GLFW_KEY_X && action == GLFW_PRESS)
         shear(1);
+	else if (key == GLFW_KEY_C && action == GLFW_PRESS)
+        shear(2);
+	else if (key == GLFW_KEY_V && action == GLFW_PRESS)
+        shear(3);
 	else if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, 1);
 }
@@ -421,8 +441,8 @@ int main(int argc, char** argv) {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
 	// Create and open a window using read-in width/height as well as name of .ppm file
-	window = glfwCreateWindow(atoi(header_buffer->file_width),
-							  atoi(header_buffer->file_height),
+	window = glfwCreateWindow(800,
+							  600,
 							  input_name,
 							  NULL,
 							  NULL);
@@ -486,21 +506,27 @@ int main(int argc, char** argv) {
 
 		glClearColor(0, 0, 0, 0);
 		glClear(GL_COLOR_BUFFER_BIT);
+		
+		int temp_width;
+		int temp_height;
+		
+		glfwGetFramebufferSize(window, &temp_width, &temp_height);
 
-		glViewport(0, 0, atoi(header_buffer->file_width), atoi(header_buffer->file_height));
+		glViewport(0, 0, temp_width, temp_height); // sets image size to fit window
 
 		glVertexAttribPointer(position_slot,
 							  3,
 							  GL_FLOAT,
 							  GL_FALSE,
 							  sizeof(Vertex),
-							  0);		  
+							  0);		
+							  
 		glVertexAttribPointer(texcoord_location,
 							  2,
 							  GL_FLOAT,
 							  GL_FALSE,
 							  sizeof(Vertex),
-							  (void*) (sizeof(float) * 3)); // modify last parameter? * 7 due to offset
+							  (void*) (sizeof(float) * 3));
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texID);
 		glUniform1i(tex_location, 0);
@@ -585,7 +611,6 @@ void read_header_data(char* input_file_name)
 	
 	// determining file height
 	i = 0; // resets iterator variable to 0
-	//c = fgetc(fp); // grabs the next character in the file
 	
 	skip_ws(fp);
 	c = fgetc(fp);
@@ -616,7 +641,6 @@ void read_header_data(char* input_file_name)
 		
     // determining max color
 	i = 0; // resets iterator variable to 0
-	//c = fgetc(fp); // grabs the next character in the file
 	
 	skip_ws(fp);
 	c = fgetc(fp);
@@ -671,7 +695,7 @@ void read_p6_image_data(char* input_file_name)
 		
 		FILE* p6_file = fopen(input_file_name, "rb"); // opens file to be able to read in bytes
 		fseek(p6_file, current_location, SEEK_SET); // sets file pointer to previously calculated current_location global variable
-		skip_ws(p6_file);
+		skip_ws(p6_file); // skips any white space after the header
 		
 		// while loop which iterates for every pixel in the file using width * height
 		while(i < atoi(header_buffer->file_width) * atoi(header_buffer->file_height))
