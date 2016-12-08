@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 #include <ctype.h>
 #include <assert.h>
 
@@ -72,7 +73,7 @@ Vertex Vertices[] =
   {{-1, -1, 0}, {0, 0, 0, 1}, {0,0}}
 };
 
-const GLubyte Indices[] = { // rm const?
+const GLubyte Indices[] = {
   0, 1, 2,
   2, 3, 0
 };
@@ -80,23 +81,17 @@ const GLubyte Indices[] = { // rm const?
 
 char* vertex_shader_src =
   "attribute vec4 Position;\n"
-  "attribute vec4 SourceColor;\n"
   "\n"
   "attribute vec2 TexCoordIn;\n"
   "varying lowp vec2 TexCoordOut;\n"
   "\n"
-  "varying lowp vec4 DestinationColor;\n"
-  "\n"
   "void main(void) {\n"
   "    TexCoordOut = TexCoordIn;\n"
-  "    DestinationColor = SourceColor;\n"
   "    gl_Position = Position;\n"
   "}\n";
 
 
 char* fragment_shader_src =
-  "varying lowp vec4 DestinationColor;\n"
-  "\n"
   "varying lowp vec2 TexCoordOut;\n"
   "uniform sampler2D Texture;\n"
   "\n"
@@ -198,13 +193,41 @@ void translate(int dir)
 
 void rotate(int dir)
 {
+	float angle = 1.57; // 90 degrees in radians for math.h
+	float rotation_matrix1[2][2] = {{cos(angle), -sin(angle)},
+								   {sin(angle), cos(angle)}};
+    float rotation_matrix2[2][2] = {{cos(-angle), -sin(-angle)},
+								   {sin(-angle), cos(-angle)}};
+	
     switch(dir)
     {
         case 0:
             printf("R key recognized.\n");
+			Vertices[0].Position[0] = ((Vertices[0].Position[0]*rotation_matrix2[0][0]) + (Vertices[0].Position[1]*rotation_matrix2[1][0]));
+			Vertices[0].Position[1] = ((Vertices[0].Position[0]*rotation_matrix2[0][1]) + (Vertices[0].Position[1]*rotation_matrix2[1][1]));
+			
+			Vertices[1].Position[0] = ((Vertices[1].Position[0]*rotation_matrix2[0][0]) + (Vertices[1].Position[1]*rotation_matrix2[1][0]));
+			Vertices[1].Position[1] = ((Vertices[1].Position[0]*rotation_matrix2[0][1]) + (Vertices[1].Position[1]*rotation_matrix2[1][1]));
+			
+			Vertices[2].Position[0] = ((Vertices[2].Position[0]*rotation_matrix2[0][0]) + (Vertices[2].Position[1]*rotation_matrix2[1][0]));
+			Vertices[2].Position[1] = ((Vertices[2].Position[0]*rotation_matrix2[0][1]) + (Vertices[2].Position[1]*rotation_matrix2[1][1]));
+			
+			Vertices[3].Position[0] = ((Vertices[3].Position[0]*rotation_matrix2[0][0]) + (Vertices[3].Position[1]*rotation_matrix2[1][0]));
+			Vertices[3].Position[1] = ((Vertices[3].Position[0]*rotation_matrix2[0][1]) + (Vertices[3].Position[1]*rotation_matrix2[1][1]));
             break;
         case 1:
             printf("T key recognized.\n");
+			Vertices[0].Position[0] = ((Vertices[0].Position[0]*rotation_matrix1[0][0]) + (Vertices[0].Position[1]*rotation_matrix1[1][0]));
+			Vertices[0].Position[1] = ((Vertices[0].Position[0]*rotation_matrix1[0][1]) + (Vertices[0].Position[1]*rotation_matrix1[1][1]));
+			
+			Vertices[1].Position[0] = ((Vertices[1].Position[0]*rotation_matrix1[0][0]) + (Vertices[1].Position[1]*rotation_matrix1[1][0]));
+			Vertices[1].Position[1] = ((Vertices[1].Position[0]*rotation_matrix1[0][1]) + (Vertices[1].Position[1]*rotation_matrix1[1][1]));
+			
+			Vertices[2].Position[0] = ((Vertices[2].Position[0]*rotation_matrix1[0][0]) + (Vertices[2].Position[1]*rotation_matrix1[1][0]));
+			Vertices[2].Position[1] = ((Vertices[2].Position[0]*rotation_matrix1[0][1]) + (Vertices[2].Position[1]*rotation_matrix1[1][1]));
+			
+			Vertices[3].Position[0] = ((Vertices[3].Position[0]*rotation_matrix1[0][0]) + (Vertices[3].Position[1]*rotation_matrix1[1][0]));
+			Vertices[3].Position[1] = ((Vertices[3].Position[0]*rotation_matrix1[0][1]) + (Vertices[3].Position[1]*rotation_matrix1[1][1]));
             break;
         default:
             printf("Invalid key recognized for rotation.\n");
@@ -212,6 +235,7 @@ void rotate(int dir)
     }
 }
 
+			
 void scale(int dir)
 {
     switch(dir)
@@ -229,14 +253,14 @@ void scale(int dir)
             break;
         case 1:
             printf("D key recognized.\n");
-			Vertices[0].Position[0] *= .9;
-            Vertices[0].Position[1] *= .9;
-            Vertices[1].Position[0] *= .9;
-            Vertices[1].Position[1] *= .9; // manually scaling the x and y coordinates down by .9 its original sizse of the Position vectors for each vertex
-            Vertices[2].Position[0] *= .9; // we don't care about the z coordinate
-            Vertices[2].Position[1] *= .9;
-            Vertices[3].Position[0] *= .9;
-            Vertices[3].Position[1] *= .9;
+			Vertices[0].Position[0] *= .91;
+            Vertices[0].Position[1] *= .91;
+            Vertices[1].Position[0] *= .91;
+            Vertices[1].Position[1] *= .91; // manually scaling the x and y coordinates down by .91 its original sizse of the Position vectors for each vertex
+            Vertices[2].Position[0] *= .91; // we don't care about the z coordinate
+            Vertices[2].Position[1] *= .91;
+            Vertices[3].Position[0] *= .91;
+            Vertices[3].Position[1] *= .91;
             break;
         default:
             printf("Invalid key recognized for scale.\n");
@@ -250,17 +274,21 @@ void shear(int dir)
     {
         case 0:
             printf("X key recognized.\n");
-			Vertices[0].Position[0] += 0.1;
-            Vertices[3].Position[0] += 0.1;
+			// shearing top two vertices
 			Vertices[2].Position[0] += -0.1;
             Vertices[1].Position[0] += -0.1;
+			// shearing bottom two vertices
+			Vertices[0].Position[0] += 0.1;
+            Vertices[3].Position[0] += 0.1;
             break;
         case 1:
             printf("C key recognized.\n");
-			Vertices[0].Position[0] += -0.1;
-            Vertices[3].Position[0] += -0.1;
+			// shearing top two vertices
 			Vertices[2].Position[0] += 0.1;
             Vertices[1].Position[0] += 0.1;
+			// shearing bottom two vertices
+			Vertices[0].Position[0] += -0.1;
+            Vertices[3].Position[0] += -0.1;
             break;
         default:
             printf("Invalid key recognized for shear.\n");
@@ -294,6 +322,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         shear(0);
 	else if (key == GLFW_KEY_C && action == GLFW_PRESS)
         shear(1);
+	else if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
 static void error_callback(int error, const char* description) {
@@ -414,10 +444,10 @@ int main(int argc, char** argv) {
 
 	position_slot = glGetAttribLocation(program_id, "Position");
 	assert(position_slot != -1);
-	color_slot = glGetAttribLocation(program_id, "SourceColor");
-    assert(color_slot != -1);
+	//color_slot = glGetAttribLocation(program_id, "SourceColor");
+    //assert(color_slot != -1);
 	glEnableVertexAttribArray(position_slot);
-	glEnableVertexAttribArray(color_slot);
+	//glEnableVertexAttribArray(color_slot);
 	
 	// potentially add other stuff around here
 	GLint texcoord_location = glGetAttribLocation(program_id, "TexCoordIn");
@@ -445,7 +475,7 @@ int main(int argc, char** argv) {
 
 	// Repeat
 	while (!glfwWindowShouldClose(window)) {
-		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW); // updates image if any transformations were performed
 
 		glClearColor(0, 104.0/255.0, 55.0/255.0, 1.0); // may change this later
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -459,12 +489,12 @@ int main(int argc, char** argv) {
 							  sizeof(Vertex),
 							  0);
 
-		glVertexAttribPointer(color_slot,
+		/*glVertexAttribPointer(color_slot,
 							  4,
 							  GL_FLOAT,
 							  GL_FALSE,
 							  sizeof(Vertex),
-							  (GLvoid*) (sizeof(float) * 3));
+							  (GLvoid*) (sizeof(float) * 3));*/
 		// added texture stuff here					  
 		glVertexAttribPointer(texcoord_location,
 							  2,
