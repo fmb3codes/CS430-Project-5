@@ -22,7 +22,7 @@
 // function prototypes
 void read_header_data(char* input_file_name); // function meant to read and parse through the header information of a .ppm file
 
-void read_image_data(char* input_file_name); // function meant to read and parse through all image information located after the header information in a .ppm file
+void read_p6_image_data(char* input_file_name); // function meant to read and parse through all iamge information located after the header information in a P6 formatted .ppm file
 
 void skip_ws(FILE* json);  // helper function to skip whitespace when reading .ppm file
 
@@ -66,10 +66,10 @@ GLFWwindow* window;
 
 Vertex Vertices[] =
 {
-  {{1, -1, 0},  {.9999,.9999}},
-  {{1, 1, 0},   {.9999,0}},
-  {{-1, 1, 0},  {0,0}},
-  {{-1, -1, 0}, {0,.9999}}
+  {{1, -1, 0},  {.9999, .9999}},
+  {{1, 1, 0},   {.9999, 0}},
+  {{-1, 1, 0},  {0, 0}},
+  {{-1, -1, 0}, {0, .9999}}
 };
 
 const GLubyte Indices[] = {
@@ -116,7 +116,6 @@ GLint simple_shader(GLint shader_type, char* shader_src) {
     GLchar message[256];
     glGetShaderInfoLog(shader_id, sizeof(message), 0, &message[0]);
     printf("glCompileShader Error: %s\n", message);
-	//printf("shader_type is: %d and shade_src is: %s\n", shader_type, shader_src); // testing code
     exit(1);
   }
 
@@ -158,31 +157,31 @@ void translate(int dir)
     {
         case 0:
             printf("Up arrow key recognized.\n");
-			Vertices[0].Position[1] += 0.05;
-            Vertices[1].Position[1] += 0.05;
-            Vertices[2].Position[1] += 0.05;
-            Vertices[3].Position[1] += 0.05;
+			Vertices[0].Position[1] += .5;
+            Vertices[1].Position[1] += .5;
+            Vertices[2].Position[1] += .5;
+            Vertices[3].Position[1] += .5;
             break;
         case 1:
             printf("Down arrow key recognized.\n");
-			Vertices[0].Position[1] += -0.05;
-            Vertices[1].Position[1] += -0.05;
-            Vertices[2].Position[1] += -0.05;
-            Vertices[3].Position[1] += -0.05;
+			Vertices[0].Position[1] += -.5;
+            Vertices[1].Position[1] += -.5;
+            Vertices[2].Position[1] += -.5;
+            Vertices[3].Position[1] += -.5;
             break;
         case 2:
             printf("Left arrow key recognized.\n");
-			Vertices[0].Position[0] += -0.05;
-            Vertices[1].Position[0] += -0.05;
-            Vertices[2].Position[0] += -0.05;
-            Vertices[3].Position[0] += -0.05;
+			Vertices[0].Position[0] += -.5;
+            Vertices[1].Position[0] += -.5;
+            Vertices[2].Position[0] += -.5;
+            Vertices[3].Position[0] += -.5;
             break;
         case 3:
             printf("Right arrow key recognized.\n");
-			Vertices[0].Position[0] += 0.05;
-            Vertices[1].Position[0] += 0.05;
-            Vertices[2].Position[0] += 0.05;
-            Vertices[3].Position[0] += 0.05;
+			Vertices[0].Position[0] += .5;
+            Vertices[1].Position[0] += .5;
+            Vertices[2].Position[0] += .5;
+            Vertices[3].Position[0] += .5;
             break;
         default:
             printf("Invalid key recognized for translation.\n");
@@ -193,11 +192,11 @@ void translate(int dir)
 // rotate function which rotates the image 45 degrees to the left or right depending on key entered (R for left and T for right)
 void rotate(int dir)
 {
-	float angle = 0.785398; // 45 degrees in radians for math.h
-	float rotation_matrix1[2][2] = {{cos(angle), -sin(angle)},
-								   {sin(angle), cos(angle)}};
-    float rotation_matrix2[2][2] = {{cos(-angle), -sin(-angle)},
+	float angle = 0.785398; // 45 degrees in radians for math.h sin/cos function calls
+	float rotation_matrix1[2][2] = {{cos(-angle), -sin(-angle)},
 								   {sin(-angle), cos(-angle)}};
+    float rotation_matrix2[2][2] = {{cos(angle), -sin(angle)},
+								   {sin(angle), cos(angle)}};
 	float temp_x;
 	float temp_y;
 
@@ -254,7 +253,7 @@ void rotate(int dir)
     }
 }
 
-// scale function which scales the image up or down by roughly 3 times its original size depending on the key entered (S for scale up and D for scale down)	
+// scale function which scales the image up or down by roughly a third of its original size depending on the key entered (S for scale up and D for scale down)	
 void scale(int dir)
 {
     switch(dir)
@@ -295,20 +294,20 @@ void shear(int dir)
         case 0:
             printf("X key recognized.\n");
 			// shearing bottom two vertices
-			Vertices[0].Position[0] += 0.1;
-            Vertices[3].Position[0] += 0.1;
+			Vertices[0].Position[0] += 0.25;
+            Vertices[3].Position[0] += 0.25;
 			// shearing top two vertices
-			Vertices[2].Position[0] += -0.1;
-            Vertices[1].Position[0] += -0.1;
+			Vertices[2].Position[0] += -0.25;
+            Vertices[1].Position[0] += -0.25;
             break;
         case 1:
             printf("C key recognized.\n");
 			// shearing bottom two vertices
-			Vertices[0].Position[0] += -0.1;
-            Vertices[3].Position[0] += -0.1;
+			Vertices[0].Position[0] += -0.25;
+            Vertices[3].Position[0] += -0.25;
 			// shearing top two vertices
-			Vertices[2].Position[0] += 0.1;
-            Vertices[1].Position[0] += 0.1;
+			Vertices[2].Position[0] += 0.25;
+            Vertices[1].Position[0] += 0.25;
             break;
         default:
             printf("Invalid key recognized for shear.\n");
@@ -350,8 +349,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 static void error_callback(int error, const char* description) {
   fputs(description, stderr);
 }
-
-// 	CONFIRM IF P3 OR P6 AND CHANGE ERROR CODES IN READ_DATA FUNCTIONS TO INDICATE ONE OR THE OTHER
 
 
 int main(int argc, char** argv) {
@@ -400,8 +397,7 @@ int main(int argc, char** argv) {
 	// intermediate image_buffer memory allocation here as image_width and image_height were previously unavailable
 	image_buffer = (image_data *)malloc(sizeof(image_data) * image_width * image_height  + 1); // + 1
 	
-	read_image_data(input_name); // reads and stores image information
-	printf("Done reading .ppm file.\n");
+	read_p6_image_data(input_name); // reads and stores image information from P6 file
 	
 	//print_pixels(); // testing code
 	//exit(1);
@@ -488,7 +484,7 @@ int main(int argc, char** argv) {
 	while (!glfwWindowShouldClose(window)) {
 		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW); // updates image if any transformations were performed
 
-		glClearColor(0, 0, 0, 1.0); // may change this later
+		glClearColor(0, 0, 0, 0);
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		glViewport(0, 0, atoi(header_buffer->file_width), atoi(header_buffer->file_height));
@@ -528,8 +524,7 @@ int main(int argc, char** argv) {
 void read_header_data(char* input_file_name)
 {
 	FILE *fp;
-	
-	fp = fopen(input_file_name, "r");
+	fp = fopen(input_file_name, "rb");
 	
 	// error checking again on input_file to validate its existence
 	if(fp == NULL)
@@ -555,9 +550,9 @@ void read_header_data(char* input_file_name)
 	memset(temp, 0, 64); // resets all values in temp to 0 for later use
 	
 	// error check to make sure .ppm file contains either P3 or P6 as its magic number
-	if((strcmp(header_buffer->file_format, "P3") != 0) && (strcmp(header_buffer->file_format, "P6") != 0))
+	if((strcmp(header_buffer->file_format, "P6") != 0) && (strcmp(header_buffer->file_format, "p6") != 0))
 	{
-		fprintf(stderr, "Error: Given file format is neither P3 nor P6.\n");
+		fprintf(stderr, "Error: Given file format for this project must be P6.\n");
 		exit(1); // exits out of program due to error		
 	}
 	
@@ -655,87 +650,16 @@ void read_header_data(char* input_file_name)
 	fclose(fp);
 }
 
-// read_image_data function takes in a sole input_file_name argument in order to know which file to read from
-void read_image_data(char* input_file_name)
-{
-	FILE *fp;
-	
-	fp = fopen(input_file_name, "r");
-		
-	// error checking again on input_file to validate its existence
-	if(fp == NULL)
-	{
-		fprintf(stderr, "Error: File didn't open properly; filename may be incorrect or file may not exist.\n");
-		exit(1); // exits out of program due to error
-	}
-		
-	// fseek points file pointer to space right after header information in the input file, so that the image_data buffer only reads in image data
-	fseek(fp, current_location - 3, SEEK_SET); // POTENTIALLY CHANGE THIS
-	
-	// strcmp to check for type of input file format
-	if(strcmp(header_buffer->file_format, "P3") == 0)
-	{
-		char temp[64] = {0}; // temporary character array to store header information later on
-		int c; // declares int c to be used later on in order to store next character in file
-		int current_number = 0; // used hold the atoi value of the number read in
-		image_data current_pixel; // temp image_data struct which will hold RGB pixels
-		image_data* temp_ptr = image_buffer; // temp ptr to image_data struct which will be used to navigate through global buffer
-		current_pixel.r = '0';
-		current_pixel.g = '0'; // initializes current pixel RGB values to 0
-		current_pixel.b = '0';
-		
-		while(1)
-		{
-			if(feof(fp))
-				break;
-			skip_ws(fp);
-			fgets(temp, 5, fp);
-			current_number = atoi(temp);
-			if(current_number < 0 || current_number > 255)
-			{
-				fprintf(stderr, "Error: Invalid color value in given file (RGB value not between 0-255).\n");
-				exit(1); // exits out of program due to error				
-			}
-			current_pixel.r = current_number; // stores red value
-			
-			//skip_ws(fp);
-			fgets(temp, 5, fp);
-			current_number = atoi(temp);
-			if(current_number < 0 || current_number > 255)
-			{
-				fprintf(stderr, "Error: Invalid color value in given file (RGB value not between 0-255).\n");
-				exit(1); // exits out of program due to error				
-			}
-			current_pixel.g = current_number; // stores green value
-			
-			skip_ws(fp);
-			fgets(temp, 5, fp);
-			current_number = atoi(temp);
-			if(current_number < 0 || current_number > 255)
-			{
-				fprintf(stderr, "Error: Invalid color value in given file (RGB value not between 0-255).\n");
-				exit(1); // exits out of program due to error				
-			}
-			current_pixel.b = current_number; // store blue value
-			
-			*temp_ptr = current_pixel; // effectively stores current pixel in temporary buffer
-			temp_ptr++; // increments temp_ptr to point to next image_data struct in global buffer
-			current_pixel.r = '0';
-			current_pixel.g = '0'; // resets current pixel RGB values to 0
-			current_pixel.b = '0';
-			skip_ws(fp);
-		}
 
-		fclose(fp);
-	}
-	
-	// strcmp to check for type of input file format
-	else if(strcmp(header_buffer->file_format, "P6") == 0)
+// read_p6_image_data function takes in a sole input_file_name argument in order to know which file to read from
+void read_p6_image_data(char* input_file_name)
+{	
+	// strcmp to verify type of input file format
+	if((strcmp(header_buffer->file_format, "P6") == 0) || (strcmp(header_buffer->file_format, "p6") == 0))
 	{	
 		char* current_line; // character pointer used to read information from fgets
 		current_line = (char *)malloc(1500); // allocated memory to current_line; doesn't need too much since a single line in a .ppm file shouldn't be too long
 		char temp[64] = {0}; // temporary character array to store header information later on
-		//int c = fgetc(fp); // initializes int c to the first character in the input file
 		int i = 0; // initializes iterator variable
 		int current_number = 0; // used hold the atoi value of the number read in
 		image_data current_pixel; // temp image_data struct which will hold RGB pixels
@@ -743,39 +667,36 @@ void read_image_data(char* input_file_name)
 		current_pixel.r = '0';
 		current_pixel.g = '0'; // initializes current pixel RGB values to 0
 		current_pixel.b = '0';
+				
 		
-		
-		skip_ws(fp);
-		current_location = ftell(fp);
-		
-		fclose(fp); // after using fgetc to verify white space after header is gone, closes file
-		fopen(input_file_name, "rb"); // reopens file to be able to read in bytes
-		fseek(fp, current_location, SEEK_SET); // sets file pointer to previously calculated current_location global variable
-		
+		FILE* p6_file = fopen(input_file_name, "rb"); // opens file to be able to read in bytes
+		fseek(p6_file, current_location, SEEK_SET); // sets file pointer to previously calculated current_location global variable
+		skip_ws(p6_file);
 		
 		// while loop which iterates for every pixel in the file using width * height
 		while(i < atoi(header_buffer->file_width) * atoi(header_buffer->file_height))
 		{
-			fread(&current_pixel.r, sizeof(unsigned char), 1, fp); // reads a byte "unsigned char" pixel into current_pixel.r field
-			fread(&current_pixel.g, sizeof(unsigned char), 1, fp); // reads a byte "unsigned char" pixel into current_pixel.g field
-			fread(&current_pixel.b, sizeof(unsigned char), 1, fp); // reads a byte "unsigned char" pixel into current_pixel.b field
+			fread(&current_pixel.r, sizeof(unsigned char), 1, p6_file); // reads a byte "unsigned char" pixel into current_pixel.r field
+			fread(&current_pixel.g, sizeof(unsigned char), 1, p6_file); // reads a byte "unsigned char" pixel into current_pixel.g field
+			fread(&current_pixel.b, sizeof(unsigned char), 1, p6_file); // reads a byte "unsigned char" pixel into current_pixel.b field
+
 			*temp_ptr = current_pixel; // effectively stores current pixel in temporary buffer
 			temp_ptr++; // increments temp_ptr to point to next image_data struct in global buffer
 			
 			// error checking block for each individual pixel to make sure they're not outside the color range limit
-			if(current_pixel.r < 0 || current_pixel.r  > 255)
+			if(current_pixel.r < 0 || current_pixel.r  > atoi(header_buffer->file_maxcolor))
 			{
 				fprintf(stderr, "Error: Invalid color value in given file (RGB value not between 0-%d).\n", atoi(header_buffer->file_maxcolor));
 				exit(1); // exits out of program due to error				
 			}
 			
-			if(current_pixel.g < 0 || current_pixel.g > 255)
+			if(current_pixel.g < 0 || current_pixel.g > atoi(header_buffer->file_maxcolor))
 			{
 				fprintf(stderr, "Error: Invalid color value in given file (RGB value not between 0-%d).\n", atoi(header_buffer->file_maxcolor));
 				exit(1); // exits out of program due to error				
 			}
 			
-			if(current_pixel.b < 0 || current_pixel.b > 255)
+			if(current_pixel.b < 0 || current_pixel.b > atoi(header_buffer->file_maxcolor))
 			{
 				fprintf(stderr, "Error: Invalid color value in given file (RGB value not between 0-%d).\n", atoi(header_buffer->file_maxcolor));
 				exit(1); // exits out of program due to error				
@@ -787,13 +708,13 @@ void read_image_data(char* input_file_name)
 			i++; // increments iterator variable
 		}
 		
-		fclose(fp);
+		fclose(p6_file); // closes p6 file after reading
 	}
 	
 	// file format was neither P3 nor P6 so exits with error
 	else
 	{
-		fprintf(stderr, "Error: File format to read in not recognized\n");
+		fprintf(stderr, "Error: File format to read in not recognized. For this project, file format of choice should be P6\n");
 		exit(1); // exits out of program due to error	
 	}
 }
