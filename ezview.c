@@ -24,12 +24,17 @@ void read_header_data(char* input_file_name); // function meant to read and pars
 
 void read_p6_image_data(char* input_file_name); // function meant to read and parse through all iamge information located after the header information in a P6 formatted .ppm file
 
-void skip_ws(FILE* json);  // helper function to skip whitespace when reading .ppm file
+void skip_ws(FILE* json); // helper function to skip whitespace when reading .ppm file
 
-void print_pixels(); // to be removed later (helper function)
+void translate(int dir); // translates the image depending on keyboard input
 
+void rotate(int dir); // rotates the image depending on keyboard input
 
-// remove color, add textcoord?
+void scale(int dir); // scales the image depending on keyboard input
+
+void shear(int dir); // shears the image depending on keyboard input
+
+// Vertex struct containing a Position vector and TexCoord vector
 typedef struct {
   float Position[3];
   float TexCoord[2];
@@ -63,7 +68,6 @@ int image_width;
 
 GLFWwindow* window;
 
-
 Vertex Vertices[] =
 {
   {{1, -1, 0},  {.9999, .9999}},
@@ -77,7 +81,6 @@ const GLubyte Indices[] = {
   2, 3, 0
 };
 	
-
 char* vertex_shader_src =
   "attribute vec4 Position;\n"
   "\n"
@@ -89,7 +92,6 @@ char* vertex_shader_src =
   "    gl_Position = Position;\n"
   "}\n";
 
-
 char* fragment_shader_src =
   "varying lowp vec2 TexCoordOut;\n"
   "uniform sampler2D Texture;\n"
@@ -97,8 +99,6 @@ char* fragment_shader_src =
   "void main(void) {\n"
   "    gl_FragColor = texture2D(Texture, TexCoordOut);\n"
   "}\n";
-
-
 
 GLint simple_shader(GLint shader_type, char* shader_src) {
 
@@ -121,7 +121,6 @@ GLint simple_shader(GLint shader_type, char* shader_src) {
 
   return shader_id;
 }
-
 
 int simple_program() {
 
@@ -154,28 +153,24 @@ void translate(int dir)
     switch(dir)
     {
         case 0:
-            printf("Up arrow key recognized.\n");
 			Vertices[0].Position[1] += .25;
             Vertices[1].Position[1] += .25;
             Vertices[2].Position[1] += .25;
             Vertices[3].Position[1] += .25;
             break;
         case 1:
-            printf("Down arrow key recognized.\n");
 			Vertices[0].Position[1] += -.25;
             Vertices[1].Position[1] += -.25;
             Vertices[2].Position[1] += -.25;
             Vertices[3].Position[1] += -.25;
             break;
         case 2:
-            printf("Left arrow key recognized.\n");
 			Vertices[0].Position[0] += -.25;
             Vertices[1].Position[0] += -.25;
             Vertices[2].Position[0] += -.25;
             Vertices[3].Position[0] += -.25;
             break;
         case 3:
-            printf("Right arrow key recognized.\n");
 			Vertices[0].Position[0] += .25;
             Vertices[1].Position[0] += .25;
             Vertices[2].Position[0] += .25;
@@ -187,10 +182,10 @@ void translate(int dir)
     }
 }
 
-// rotate function which rotates the image 45 degrees to the left or right depending on key entered (R for left and T for right)
+// rotate function which rotates the image 90 degrees clockwise or counter-clockwise depending on key entered (R for counter-clockwise and T for clockwise)
 void rotate(int dir)
 {
-	float angle = 0.785398; // 45 degrees in radians for math.h sin/cos function calls
+	float angle = 1.5708; // 90 degrees in radians for math.h sin/cos function calls
 	float rotation_matrix1[2][2] = {{cos(-angle), -sin(-angle)},
 								   {sin(-angle), cos(-angle)}};
     float rotation_matrix2[2][2] = {{cos(angle), -sin(angle)},
@@ -202,7 +197,6 @@ void rotate(int dir)
     switch(dir)
     {
         case 0:
-            printf("R key recognized.\n");
 			temp_x = (Vertices[0].Position[0]*rotation_matrix1[0][0]) + (Vertices[0].Position[1]*rotation_matrix1[1][0]);
 			temp_y = (Vertices[0].Position[0]*rotation_matrix1[0][1]) + (Vertices[0].Position[1]*rotation_matrix1[1][1]);
 			Vertices[0].Position[0] = temp_x;
@@ -224,7 +218,6 @@ void rotate(int dir)
 			Vertices[3].Position[1] = temp_y;		
             break;
         case 1:
-            printf("T key recognized.\n");
 			temp_x = (Vertices[0].Position[0]*rotation_matrix2[0][0]) + (Vertices[0].Position[1]*rotation_matrix2[1][0]);
 			temp_y = (Vertices[0].Position[0]*rotation_matrix2[0][1]) + (Vertices[0].Position[1]*rotation_matrix2[1][1]);
 			Vertices[0].Position[0] = temp_x;
@@ -257,7 +250,6 @@ void scale(int dir)
     switch(dir)
     {
         case 0:
-            printf("S key recognized.\n");
 			Vertices[0].Position[0] *= 1.3;
             Vertices[0].Position[1] *= 1.3;
             Vertices[1].Position[0] *= 1.3;
@@ -268,7 +260,6 @@ void scale(int dir)
             Vertices[3].Position[1] *= 1.3;
             break;
         case 1:
-            printf("D key recognized.\n");
 			Vertices[0].Position[0] *= .77;
             Vertices[0].Position[1] *= .77;
             Vertices[1].Position[0] *= .77;
@@ -290,7 +281,6 @@ void shear(int dir)
     switch(dir)
     {
         case 0:
-            printf("Z key recognized.\n");
 			// shearing bottom two vertices
 			Vertices[0].Position[0] += 0.25;
             Vertices[3].Position[0] += 0.25;
@@ -299,7 +289,6 @@ void shear(int dir)
             Vertices[1].Position[0] += -0.25;
             break;
         case 1:
-            printf("X key recognized.\n");
 			// shearing bottom two vertices
 			Vertices[0].Position[0] += -0.25;
             Vertices[3].Position[0] += -0.25;
@@ -308,7 +297,6 @@ void shear(int dir)
             Vertices[1].Position[0] += 0.25;
             break;
 		case 2:
-            printf("C key recognized.\n");
 			// shearing bottom two vertices
 			Vertices[0].Position[1] += 0.25;
             Vertices[3].Position[1] += -0.25;
@@ -317,7 +305,6 @@ void shear(int dir)
             Vertices[1].Position[1] += 0.25;
             break;
         case 3:
-            printf("V key recognized.\n");
 			// shearing bottom two vertices
 			Vertices[0].Position[1] += -0.25;
             Vertices[3].Position[1] += 0.25;
@@ -370,7 +357,6 @@ static void error_callback(int error, const char* description) {
   fputs(description, stderr);
 }
 
-
 int main(int argc, char** argv) {
 	if(argc != 2) // checks for "2" arguments which includes the argv[0] path argument as well as the 1 required argument of format [input.ppm]
 	{
@@ -415,13 +401,9 @@ int main(int argc, char** argv) {
 	read_header_data(input_name); // reads and parses header information
 
 	// intermediate image_buffer memory allocation here as image_width and image_height were previously unavailable
-	image_buffer = (image_data *)malloc(sizeof(image_data) * image_width * image_height  + 1); // + 1
+	image_buffer = (image_data *)malloc(sizeof(image_data) * image_width * image_height  + 1);
 	
 	read_p6_image_data(input_name); // reads and stores image information from P6 file
-	
-	//print_pixels(); // testing code
-	//exit(1);
-	
 	
 	// start of OpenGL calls
 	GLint program_id, position_slot;
@@ -440,9 +422,9 @@ int main(int argc, char** argv) {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
-	// Create and open a window using read-in width/height as well as name of .ppm file
-	window = glfwCreateWindow(800,
-							  600,
+	// Create and open a window using 800x600 as well as name of .ppm file
+	window = glfwCreateWindow(1024,
+							  768,
 							  input_name,
 							  NULL,
 							  NULL);
@@ -455,7 +437,7 @@ int main(int argc, char** argv) {
 
 	glfwMakeContextCurrent(window);
 	
-	// sets up texture ID and generates/binds as well as loads the read-in .ppm file for the actual texture
+	// sets up texture ID and generates/binds as well as loads the read-in .ppm file as the texture
 	GLuint texID;
     glGenTextures(1, &texID);
     glBindTexture(GL_TEXTURE_2D, texID);
@@ -464,7 +446,6 @@ int main(int argc, char** argv) {
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image_width, image_height, 0, GL_RGB, 
 				 GL_UNSIGNED_BYTE, image_buffer);
 	//
-	
 	
 	program_id = simple_program();
 
@@ -507,10 +488,11 @@ int main(int argc, char** argv) {
 		glClearColor(0, 0, 0, 0);
 		glClear(GL_COLOR_BUFFER_BIT);
 		
+		// temp width and height variables to get frame buffer size
 		int temp_width;
 		int temp_height;
 		
-		glfwGetFramebufferSize(window, &temp_width, &temp_height);
+		glfwGetFramebufferSize(window, &temp_width, &temp_height); // grabs frame buffer size and stores width and height in respective temp variables
 
 		glViewport(0, 0, temp_width, temp_height); // sets image size to fit window
 
@@ -562,20 +544,20 @@ void read_header_data(char* input_file_name)
 	char* current_line; // character pointer used to read information from fgets
 	current_line = (char *)malloc(1500); // allocated memory to current_line; doesn't need too much since a single line in a .ppm file shouldn't be too long
 	char temp[64] = {0}; // temporary character array to store header information later on
-	int c;// = fgetc(fp); // initializes int c to the first character in the input file
+	int c; // declares int c variable
 	int i = 0; // initializes iterator variable
 
 	
-	skip_ws(fp);
+	skip_ws(fp); // skips any white space at beginning of file
 	temp[i++] = fgetc(fp); // Should read in P 
-	temp[i++] = fgetc(fp); // Should read in # in P#
+	temp[i++] = fgetc(fp); // Should read in # in P# (in this project's case the 6 of P6)
 	
 	
 	temp[i] = 0; // adds null-terminator at the end of the temporary character array
-	strcpy(header_buffer->file_format, temp); // copies what should be the file_format (P3/P6) into the header_buffer->file_format field
+	strcpy(header_buffer->file_format, temp); // copies what should be the file_format (P6 in this project's case) into the header_buffer->file_format field
 	memset(temp, 0, 64); // resets all values in temp to 0 for later use
 	
-	// error check to make sure .ppm file contains either P3 or P6 as its magic number
+	// error check to make sure .ppm file contains either P6 or p6 as its magic number
 	if((strcmp(header_buffer->file_format, "P6") != 0) && (strcmp(header_buffer->file_format, "p6") != 0))
 	{
 		fprintf(stderr, "Error: Given file format for this project must be P6.\n");
@@ -585,7 +567,6 @@ void read_header_data(char* input_file_name)
 	
 	// determining file width
 	i = 0; // resets iterator variable to 0
-	//c = fgetc(fp); // grabs the next character in the file
 	
 	skip_ws(fp);
 	c = fgetc(fp);
@@ -681,11 +662,7 @@ void read_p6_image_data(char* input_file_name)
 	// strcmp to verify type of input file format
 	if((strcmp(header_buffer->file_format, "P6") == 0) || (strcmp(header_buffer->file_format, "p6") == 0))
 	{	
-		char* current_line; // character pointer used to read information from fgets
-		current_line = (char *)malloc(1500); // allocated memory to current_line; doesn't need too much since a single line in a .ppm file shouldn't be too long
-		char temp[64] = {0}; // temporary character array to store header information later on
 		int i = 0; // initializes iterator variable
-		int current_number = 0; // used hold the atoi value of the number read in
 		image_data current_pixel; // temp image_data struct which will hold RGB pixels
 		image_data* temp_ptr = image_buffer; // temp ptr to image_data struct which will be used to navigate through global buffer
 		current_pixel.r = '0';
@@ -751,20 +728,4 @@ void skip_ws(FILE* input_file)
     c = fgetc(input_file);
   }
   ungetc(c, input_file);
-}
-
-// helper function 
-void print_pixels()
-{
-	int i = 0;
-	printf("\nHeader info:\nformat:%s\nheight:%s\nwidth:%s\nmaxcolor:%s\n\n", header_buffer->file_format, header_buffer->file_height, header_buffer->file_width, header_buffer->file_maxcolor);
-	while(i != (atoi(header_buffer->file_width) * atoi(header_buffer->file_height)))
-	{
-		//if(i == 20)
-			//break;
-		printf("Pixel #%d\n", i);
-		printf("R: %d G: %d B: %d\n", image_buffer->r, image_buffer->g, image_buffer->b);
-		image_buffer++;
-		i++;
-	}
 }
