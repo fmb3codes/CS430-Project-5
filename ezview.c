@@ -20,12 +20,6 @@
 #include <assert.h>
 
 // function prototypes
-void read_header_data(char* input_file_name); // function meant to read and parse through the header information of a .ppm file
-
-void read_p6_image_data(char* input_file_name); // function meant to read and parse through all iamge information located after the header information in a P6 formatted .ppm file
-
-void skip_ws(FILE* json); // helper function to skip whitespace when reading .ppm file
-
 void translate(int dir); // translates the image depending on keyboard input
 
 void rotate(int dir); // rotates the image depending on keyboard input
@@ -33,6 +27,12 @@ void rotate(int dir); // rotates the image depending on keyboard input
 void scale(int dir); // scales the image depending on keyboard input
 
 void shear(int dir); // shears the image depending on keyboard input
+
+void read_header_data(char* input_file_name); // function meant to read and parse through the header information of a .ppm file
+
+void read_p6_image_data(char* input_file_name); // function meant to read and parse through all iamge information located after the header information in a P6 formatted .ppm file
+
+void skip_ws(FILE* json); // helper function to skip whitespace when reading .ppm file
 
 // Vertex struct containing a Position vector and TexCoord vector
 typedef struct {
@@ -422,10 +422,10 @@ int main(int argc, char** argv) {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
-	// Create and open a window using 800x600 as well as name of .ppm file
+	// Create and open a window using 1024x768 and the project name
 	window = glfwCreateWindow(1024,
 							  768,
-							  input_name,
+							  "ezview - Image Viewer",
 							  NULL,
 							  NULL);
 
