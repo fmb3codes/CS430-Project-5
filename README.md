@@ -30,7 +30,7 @@ This application is intended to take in a P6 .ppm input file and store it as a t
 
   Note that the program will not compile unless it's in the same directory as the files from the above link.
 
-  To run this program, first open up a Visual Studios Developer Command Prompt, and type nmake in order to create the executable named "ezview"
+  To run this program, first open up a Visual Studios Developer Command Prompt, and type nmake or make in order to create the executable named "ezview"
 
   After the executable is created, it can be called directly from the command prompt along with a P6 .ppm file as the single argument.
   
