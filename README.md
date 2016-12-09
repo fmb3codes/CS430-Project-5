@@ -4,7 +4,7 @@
 //////////////////December 8, 2016//////////////////////  
 ////////////////////////////////////////////////////////////
 
-This application is intended to take in a P6 .ppm input file and store it as a texture using OpenGL which is then displayed on the screen. The user is then able to perform a number of affine transformations using different keypresses.
+This application is intended to take in a P6 .ppm input file and store it as a texture using OpenGL which is then displayed in a new window on the screen. The user is then able to perform a number of affine transformations using different keypresses.
 
 ##Keypress Shortcuts
 * Translation
@@ -41,7 +41,7 @@ ezview ex_p6_image.ppm
   Once the window opens, the image should be loaded and transformations can be performed by using the aforementioned keypress shortcuts, with the ESC key allowing an easy way to exit the program/window afterwards.
 
 ##Special Notes
-Although there are no special notes regarding the usage of this program, I do want to mention some specific details regarding the affine transformations in the ezview program. As the project criteria did not specify any specific scalars for any of the transformations, I've chosen different values for each which I felt sufficiently demonstrated the different transformations in an obvious manner. For example, the rotation transformation will rotate the image 45 degrees either clockwise or counter-clockwise, whereas the scale transformation will scale the image either up or down by roughly a third of its current size.
+Although there are no special notes regarding the usage of this program, I do want to mention some specific details regarding the affine transformations in the ezview program. As the project criteria did not specify any specific scalars for any of the transformations, I've chosen different values for each which I felt sufficiently demonstrated the different transformations in an obvious manner. For example, the rotation transformation will rotate the image 90 degrees either clockwise or counter-clockwise, whereas the scale transformation will scale the image either up or down by roughly a third of its current size.
 
 In addition to the scalar values, I also want to mention that the project criteria similarly didn't specify the method in which the affine transformations were to be programmed. I took an approach which involves modifying the position vectors for the image's vertices located within the Vertex struct. Ultimately, as all of the given technical objectives have been met, I just wanted to point out a few aspects to my implementation method which I felt were important.
 
