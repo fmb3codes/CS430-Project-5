@@ -38,7 +38,7 @@ This application is intended to take in a P6 .ppm input file and store it as a t
 ```
 ezview ex_p6_image.ppm
 ```
-  Once the window opens, the image should be loaded and transformations can be performed by using the aforementioned keypress shortcuts, with the ESC key allowing an easy way to exit the program/window afterwards.
+  Once the window opens, the image should be loaded and transformations can be performed by using the aforementioned keypress shortcuts, with the ESC key allowing an easy way to exit the program and window afterwards.
 
 ##Special Notes
 Although there are no special notes regarding the usage of this program, I do want to mention some specific details regarding the affine transformations in the ezview program. As the project criteria did not specify any specific scalars for any of the transformations, I've chosen different values for each which I felt sufficiently demonstrated the different transformations in an obvious manner. For example, the rotation transformation will rotate the image 90 degrees either clockwise or counter-clockwise, whereas the scale transformation will scale the image either up or down by roughly a third of its current size.
